@@ -21,7 +21,7 @@ namespace AcrlSync.Model
         private async void GetTree(string root)
         {
      
-            List<List<RemoteFileInfo>> fileData = await BackgroundGetTree("/"+root);
+            List<List<RemoteFileInfo>> fileData = await BackgroundGetTree(ConnectionSettings.RemotePath(root));
 
             if (fileData == null)
             {

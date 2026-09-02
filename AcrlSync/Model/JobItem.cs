@@ -21,6 +21,27 @@ namespace AcrlSync.Model
         }
 
         /// <summary>
+        /// A server-absolute path for a directory under the skins root.
+        ///
+        /// WinSCP applies WebdavRoot to ITS OWN root probe on connect, but a
+        /// path with a leading slash handed to ListDirectory is treated as
+        /// server-absolute and sent exactly as given. So "/Download" went to
+        /// https://acrlonline.org/Download - Laravel, 404 - while WinSCP's own
+        /// probe of /skins/ succeeded a moment earlier. Measured from
+        /// session.log, 2026-09-02, after an afternoon of assuming otherwise.
+        ///
+        /// So the app prefixes the root itself. WebdavRoot stays the single
+        /// place the path is configured; this is just where it gets applied.
+        /// Paths WinSCP hands BACK (RemoteFileInfo.FullName) are already
+        /// server-absolute and must not go through here.
+        /// </summary>
+        static public string RemotePath(string directory)
+        {
+            string root = (sessionOptions.WebdavRoot ?? "").TrimEnd('/');
+            return root + "/" + directory.TrimStart('/');
+        }
+
+        /// <summary>
         /// Where WinSCP writes its session log: next to the exe, overwritten
         /// on every run so it only ever holds the latest attempt.
         /// </summary>

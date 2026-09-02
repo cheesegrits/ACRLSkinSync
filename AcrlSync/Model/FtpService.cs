@@ -16,7 +16,7 @@ namespace AcrlSync.Model
             {
                 session.Open(ConnectionSettings.Options);
 
-                string remotePath = "/" + directory;
+                string remotePath = ConnectionSettings.RemotePath(directory);
                
                 List<List<RemoteFileInfo>> allFiles = new List<List<RemoteFileInfo>>();
 
@@ -59,7 +59,7 @@ namespace AcrlSync.Model
                     return;
                 }
 
-                string remotePath = "/"+directory;
+                string remotePath = ConnectionSettings.RemotePath(directory);
 
                 List<RemoteFileInfo> files = new List<RemoteFileInfo>();
                 Queue<string> folders = new Queue<string>();
