@@ -1,9 +1,9 @@
 {
-  "Protocol": 2,
-  "HostName": "acrl.rackservice.org",
-  "PortNumber": 0,
+  "Protocol": 3,
+  "HostName": "acrlonline.org",
+  "PortNumber": 443,
   "UserName": "acrlUser",
-  "Password": "RaceRace",
+  "Password": "PASTE-THE-SKINS-PASSWORD-HERE",
   "SecurePassword": {
     "Length": 8
   },
@@ -16,8 +16,8 @@
   "SshPrivateKeyPassphrase": null,
   "FtpMode": 0,
   "FtpSecure": 0,
-  "WebdavSecure": false,
-  "WebdavRoot": null,
+  "WebdavSecure": true,
+  "WebdavRoot": "/skins/",
   "TlsHostCertificateFingerprint": null,
   "GiveUpSecurityAndAcceptAnyTlsHostCertificate": false,
   "TlsClientCertificatePath": null

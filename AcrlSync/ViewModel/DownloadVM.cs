@@ -372,7 +372,7 @@ namespace AcrlSync.ViewModel
             _dataService = dataService;
             _log = string.Empty;
 
-            _loading = "Loading data from FTP";
+            _loading = "Loading data from the skins server";
             _treeLoaded = false;
             _ftpLoaded = false;
             _ftpError = "Connecting";
@@ -407,7 +407,15 @@ namespace AcrlSync.ViewModel
                         TreeLoaded = false;
                         FtpLoaded = true;
                         FtpError = "Could not Connect";
-                        string errorMessage = "Could not connect to FTP: " + ConnectionSettings.Options.HostName;
+                        // Say what to DO, not just what happened. The one time
+                        // this fired for everybody at once (2026-09, the old
+                        // server being switched off) the fix was a new
+                        // version of this app, and "Could not connect to FTP"
+                        // gave nobody a way to find that out.
+                        string errorMessage =
+                            "Could not connect to the ACRL skins server (" + ConnectionSettings.Options.HostName + ").\n\n" +
+                            "If this keeps happening, you may need a newer version of ACRLSync.\n" +
+                            "Check the Liveries page on acrlonline.org.";
                         System.Windows.MessageBox.Show(errorMessage, "Connection Failure", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                     }
                 }
@@ -445,7 +453,7 @@ namespace AcrlSync.ViewModel
         private void Reinitialise()
         {
             SaveConnectionJson();
-            Loading = "Loading data from FTP";
+            Loading = "Loading data from the skins server";
             TreeLoaded = false;
             FtpLoaded = false;
             FtpError = "Connecting";
@@ -474,10 +482,36 @@ namespace AcrlSync.ViewModel
                 string path = AppDomain.CurrentDomain.BaseDirectory;
                 string json = System.IO.File.ReadAllText(path + "/connection.json");
                 SessionOptions temp = JsonConvert.DeserializeObject<SessionOptions>(json);
+
+                // Copy EVERYTHING the transport can need, not just the four
+                // fields the original did. That short list is why the app
+                // could only ever speak plain FTP: PortNumber, WebdavSecure
+                // and WebdavRoot were read from the file and then dropped on
+                // the floor, so no connection.json could move it anywhere
+                // else without a rebuild. This is that rebuild; let it be the
+                // last one for this reason.
+                //
+                // Explicit copy rather than replacing the whole object:
+                // SessionOptions carries a SecureString and other members
+                // that do not round-trip through JSON cleanly.
                 ConnectionSettings.Options.HostName = temp.HostName;
+                ConnectionSettings.Options.PortNumber = temp.PortNumber;
                 ConnectionSettings.Options.Protocol = temp.Protocol;
                 ConnectionSettings.Options.UserName = temp.UserName;
                 ConnectionSettings.Options.Password = temp.Password;
+
+                // WebDAV (the ACRL skins server since 2026-09)
+                ConnectionSettings.Options.WebdavSecure = temp.WebdavSecure;
+                ConnectionSettings.Options.WebdavRoot = temp.WebdavRoot;
+
+                // FTP, kept so an old connection.json still works
+                ConnectionSettings.Options.FtpSecure = temp.FtpSecure;
+                ConnectionSettings.Options.FtpMode = temp.FtpMode;
+
+                // SFTP / TLS pinning, for whatever comes next
+                ConnectionSettings.Options.SshHostKeyFingerprint = temp.SshHostKeyFingerprint;
+                ConnectionSettings.Options.TlsHostCertificateFingerprint = temp.TlsHostCertificateFingerprint;
+
                 _ftpAddress = temp.HostName;
             }
             catch (FileNotFoundException)

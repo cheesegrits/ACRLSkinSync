@@ -35,7 +35,7 @@
                     <ColumnDefinition Width="1.5*" MinWidth="150"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="Bold" Text="FTP Address"/>
+                <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="Bold" Text="Server"/>
                 <TextBox Grid.Column="0" Grid.Row="1" Text="{Binding FtpAddress}" IsEnabled="{Binding FtpLoaded}"/>
                 <Button Grid.Column="1" Grid.Row="1" Margin="10 0 0 0" Content="Re_load" Command="{Binding FtpClick}" IsEnabled="{Binding FtpLoaded}"/>
                 <TextBlock Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" Foreground="Red" Margin="15 0 0 0" Text="{Binding FtpError}"/>
