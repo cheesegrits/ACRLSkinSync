@@ -357,6 +357,17 @@ namespace AcrlSync.ViewModel
             LoadConnectionJson();
             LoadSettingsJson();
 
+            // REMOTE ALWAYS WINS. The shipped connection.json is loaded first
+            // as the fallback, then the site is asked where to connect, and if
+            // it answers, that answer replaces it - and is saved back over
+            // connection.json, so a future launch that CANNOT reach the site
+            // still falls back to the last-known-good remote config rather than
+            // whatever shipped a year ago.
+            //
+            // This is the whole reason for the rebuild: the next server move is
+            // an edit on the site, not a reinstall for every driver.
+            ApplyRemoteConfig();
+
             // Start each run with a fresh session log. WinSCP appends, and a
             // log holding every attempt since 2026 is one nobody reads.
             try { System.IO.File.Delete(ConnectionSettings.SessionLogPath); } catch { }
@@ -505,6 +516,42 @@ namespace AcrlSync.ViewModel
             string path = AppDomain.CurrentDomain.BaseDirectory;
             string json = JsonConvert.SerializeObject(ConnectionSettings.Options, Formatting.Indented);
             System.IO.File.WriteAllText(path + "/connection.json", json);
+        }
+
+        /// <summary>
+        /// Ask the site where to connect, apply it, and remember it. Every part
+        /// is best-effort: no network, a slow site, a bad response - any of
+        /// them just leaves the locally-loaded config in place.
+        /// </summary>
+        private void ApplyRemoteConfig()
+        {
+            RemoteConfig remote = RemoteConfig.Fetch();
+
+            if (!remote.Ok)
+                return;
+
+            remote.ApplyTo(ConnectionSettings.Options);
+            _ftpAddress = ConnectionSettings.Options.HostName;
+
+            // Persist as the new fallback for a future offline launch.
+            try { SaveConnectionJson(); } catch { }
+
+            // A soft nudge, never a wall. If the site says this app is too old,
+            // tell the driver where to get a newer one - but still let them try
+            // with the config we have, so a mis-set minimum can never strand a
+            // working install.
+            Version current = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+
+            if (remote.RequiresNewerApp(current))
+            {
+                System.Windows.MessageBox.Show(
+                    "A newer version of ACRLSync is available and recommended.\n\n" +
+                    "You can carry on for now, but please update when you can:\n" +
+                    "the Liveries page on acrlonline.org.",
+                    "Update available",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+            }
         }
 
         private void LoadConnectionJson()
