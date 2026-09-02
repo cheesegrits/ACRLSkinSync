@@ -62,7 +62,7 @@ namespace AcrlSync.Model
         {
             Task<List<List<RemoteFileInfo>>> t = new Task<List<List<RemoteFileInfo>>>(() => 
             {
-                using (Session session = new Session())
+                using (Session session = ConnectionSettings.NewSession())
                 {
                     try
                     { session.Open(ConnectionSettings.Options); }
@@ -73,6 +73,37 @@ namespace AcrlSync.Model
                     }
                     string remotePath = root;
 
+                    List<List<RemoteFileInfo>> allFiles = new List<List<RemoteFileInfo>>();
+
+                    // The listing calls below were never guarded. Open() was,
+                    // so a dead server gave the friendly dialog - but a server
+                    // that CONNECTED and then refused a path threw straight
+                    // through a background Task into the dispatcher and took
+                    // the whole process down with no message at all. Found
+                    // the first time WebDAV connected, 2026-09-02.
+                    //
+                    // Same outcome as a failed Open: null, which the caller
+                    // turns into the connection-failure dialog. The detail is
+                    // in session.log beside the exe.
+                    try
+                    {
+                        allFiles = ListTree(session, remotePath);
+                    }
+                    catch (WinSCP.SessionRemoteException e)
+                    {
+                        System.Console.WriteLine(e.Message);
+                        return null;
+                    }
+
+                    return allFiles;
+                }
+            });
+            t.Start();
+            return t;
+        }
+
+        private static List<List<RemoteFileInfo>> ListTree(Session session, string remotePath)
+        {
                     List<List<RemoteFileInfo>> allFiles = new List<List<RemoteFileInfo>>();
 
                     // Get list of files in the directory
@@ -105,10 +136,6 @@ namespace AcrlSync.Model
                         }
                     }
                     return(allFiles);
-                }
-            });
-            t.Start();
-            return t;
         }
 
 

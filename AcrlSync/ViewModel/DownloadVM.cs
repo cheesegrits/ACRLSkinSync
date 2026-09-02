@@ -419,7 +419,8 @@ namespace AcrlSync.ViewModel
                         string errorMessage =
                             "Could not connect to the ACRL skins server (" + ConnectionSettings.Options.HostName + ").\n\n" +
                             "If this keeps happening, you may need a newer version of ACRLSync.\n" +
-                            "Check the Liveries page on acrlonline.org.";
+                            "Check the Liveries page on acrlonline.org.\n\n" +
+                            "Details of what went wrong are in session.log next to this app.";
                         System.Windows.MessageBox.Show(errorMessage, "Connection Failure", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                     }
                 }
