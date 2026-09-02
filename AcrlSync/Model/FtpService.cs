@@ -12,7 +12,7 @@ namespace AcrlSync.Model
 
         public void GetTree(string directory, Action<Exception, List<List<RemoteFileInfo>>> callback)
         {
-            using (Session session = new Session())
+            using (Session session = ConnectionSettings.NewSession())
             {
                 session.Open(ConnectionSettings.Options);
 
@@ -47,7 +47,7 @@ namespace AcrlSync.Model
 
         public void GetDirectoryDetails(string directory)
         {
-            using (Session session = new Session())
+            using (Session session = ConnectionSettings.NewSession())
             {
                 // Connect
                 try

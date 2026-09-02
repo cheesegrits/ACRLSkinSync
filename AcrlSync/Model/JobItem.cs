@@ -19,6 +19,41 @@ namespace AcrlSync.Model
         {
             sessionOptions.HostName = ip;
         }
+
+        /// <summary>
+        /// Where WinSCP writes its session log: next to the exe, overwritten
+        /// on every run so it only ever holds the latest attempt.
+        /// </summary>
+        static public string SessionLogPath
+        {
+            get { return System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "session.log"); }
+        }
+
+        /// <summary>
+        /// The one place a WinSCP Session is created, so every session logs.
+        ///
+        /// "Could not connect" used to be all anyone got: the app catches
+        /// SessionRemoteException and shows one dialog regardless of cause,
+        /// so a wrong password, a bad path, a certificate problem and a dead
+        /// server all looked identical. With the log, the answer is in
+        /// session.log beside the exe, and "send me your session.log" is
+        /// the whole support conversation.
+        /// </summary>
+        static public Session NewSession()
+        {
+            Session session = new Session();
+
+            try
+            {
+                session.SessionLogPath = SessionLogPath;
+            }
+            catch
+            {
+                // A log we cannot write must never stop a sync.
+            }
+
+            return session;
+        }
     }
 
     public class GeneralSettings

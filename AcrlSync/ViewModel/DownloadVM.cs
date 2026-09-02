@@ -357,6 +357,10 @@ namespace AcrlSync.ViewModel
             LoadConnectionJson();
             LoadSettingsJson();
 
+            // Start each run with a fresh session log. WinSCP appends, and a
+            // log holding every attempt since 2026 is one nobody reads.
+            try { System.IO.File.Delete(ConnectionSettings.SessionLogPath); } catch { }
+
             _seasons = new List<Tree>();
             var item = new Tree("Download");
             _seasons.Add(item);
@@ -680,7 +684,7 @@ namespace AcrlSync.ViewModel
                     });
             }
 
-            using (Session session = new Session())
+            using (Session session = ConnectionSettings.NewSession())
             {
                 // Connect to the FTP.
                 try
@@ -935,7 +939,7 @@ namespace AcrlSync.ViewModel
             cancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = cancellationTokenSource.Token;
 
-            using (Session session = new Session())
+            using (Session session = ConnectionSettings.NewSession())
             {
                 session.Open(ConnectionSettings.Options);
 
