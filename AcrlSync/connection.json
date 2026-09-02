@@ -17,7 +17,7 @@
   "FtpMode": 0,
   "FtpSecure": 0,
   "WebdavSecure": true,
-  "WebdavRoot": "/skins/",
+  "WebdavRoot": "/skins",
   "TlsHostCertificateFingerprint": null,
   "GiveUpSecurityAndAcceptAnyTlsHostCertificate": false,
   "TlsClientCertificatePath": null
