@@ -436,13 +436,24 @@ namespace AcrlSync.ViewModel
 
         private void FlattenTree(Tree input, string parent, List<OptionItem> output, int level = 0)
         {
-            int maxLevel = 2;
-
-            if (level == maxLevel)
+            // Emit at the LEAF, not at a hardcoded depth. The tree builder walks
+            // Download -> year-seq -> AC -> season and stops (it never lists the
+            // car level), so every season folder is a leaf and only season
+            // folders are. That is exactly the node whose children are cars,
+            // which is what BackgroundAnalyse needs the selected path to be.
+            //
+            // The previous maxLevel = 2 emitted one level too shallow, at the
+            // AC folder: the label read "2026-5 - AC" (no season) and Analyse
+            // then treated the season folder as a car and found no skins under
+            // it. Fixed 2026-09-02 against the real deployed tree.
+            if (input.Children.Count == 0)
             {
                 OptionItem item = new OptionItem
                 {
-                    Name = String.Format("{0} \u2013 {1}", parent, input.Name),
+                    // Full breadcrumb, "2026-5 - AC - Legends of the Fall",
+                    // built from the path so it does not depend on how deep the
+                    // tree happens to be. Everything after the "Download" root.
+                    Name = BreadcrumbLabel(input.FullName),
                     DownloadPath = input.FullName,
                     IsChecked = false
                 };
@@ -453,6 +464,22 @@ namespace AcrlSync.ViewModel
                 foreach (Tree child in input.Children)
                     FlattenTree(child, input.Name, output, level + 1);
             }
+        }
+
+        /// <summary>
+        /// "2026-5 - AC - Legends of the Fall" from a full remote path. The
+        /// label is the segments after "Download", joined - independent of the
+        /// WebDAV root prefix, which the segments before "Download" carry.
+        /// </summary>
+        private static string BreadcrumbLabel(string fullName)
+        {
+            string[] parts = fullName.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            int start = System.Array.IndexOf(parts, "Download") + 1;
+
+            if (start <= 0 || start >= parts.Length)
+                return fullName;
+
+            return String.Join(" \u2013 ", parts, start, parts.Length - start);
         }
 
         private void Reinitialise()
